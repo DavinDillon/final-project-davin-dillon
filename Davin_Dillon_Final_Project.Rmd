@@ -1,0 +1,100 @@
+---
+title: "Best Movies?"
+output: html_document
+date: '2022-04-18'
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = F)
+```
+
+``` {r, include = F}
+
+library(tidyverse)
+library(XML)
+library(readr)
+
+```
+```{r, include = F}
+library(dplyr)
+
+
+
+```
+
+
+
+```{r, include = F}
+options(scipen = 0)
+budget <- read_csv('top_4000_production_budget.csv')
+oscars <- read_csv('the_oscar_award.csv')
+oscars <- oscars %>% rename('Movie Title' = 'film')
+inflation <- read_csv('inflation_data.csv')
+
+adj <- inflation %>% 
+  mutate(multiplier = (amount / 1.38)/16.5362319)
+
+
+osc_bud <-  left_join(budget,oscars , on = 'Movie Title') 
+osc_bud <- osc_bud %>% na.omit(osc_bud$'Production Budget') %>% rename('Budget' = 'Production Budget') %>%  rename('Title' = 'Movie Title') %>%
+  rename('year' = 'year_film') %>% relocate('Title', 'Budget')
+
+View(osc_bud)
+
+adjusted_budget <- full_join(osc_bud, adj, on = 'year') %>% 
+  mutate(with_inflation = (Budget * (1/multiplier))) %>% 
+  mutate(gross_inflation = (osc_bud$'Worldwide Gross' * (1/multiplier))) %>% 
+  select(Title, Budget, with_inflation, gross_inflation, category, year, winner) %>% 
+  arrange(desc(with_inflation))
+top_1000_with_inflation <- adjusted_budget[0:1000,]
+
+View(top_1000_with_inflation)
+
+adj_bud_won <- adjusted_budget %>% 
+  filter(winner == T) %>% 
+  arrange(desc(with_inflation))
+
+
+
+n_of_4000 <- osc_bud %>%  distinct(osc_bud$'Title')
+
+bst_act <- osc_bud %>% 
+  group_by(Title) %>% 
+  filter(str_detect(category, 'ACT')) %>% 
+  select(Title, Budget, category)
+
+n_of_4000_won <- osc_bud %>% 
+  filter(winner == T) %>% 
+  distinct(Title)
+
+bst_pic <- osc_bud %>% 
+  group_by(Title) %>% 
+  filter(category == 'BEST PICTURE') %>% 
+  select(Title, Budget, category, winner)
+bst_pic_won <- bst_pic %>% 
+  filter(winner == T)
+
+
+noms <- oscars %>% rename('Title' = 'Movie Title') %>% 
+  distinct(Title)
+nrow(noms)
+```
+
+The 1934 film "Men in Black" was a short by the Three Stooges. It was their only Oscar nomination. 
+
+
+```{r}
+
+print('')
+print(paste('There are',nrow(n_of_4000), 'of the top 4,000 highest budget movies that have been nominated for Oscars'))
+
+print(paste('There are',nrow(n_of_4000_won), 'of the top 4,000 highest budget movies that have won Oscars'))
+
+print(paste('Of the top 4,000 highest budget movies,', nrow(bst_act), 'were nominated for one of the best acting categories.'))
+
+print(paste('Of the top 4,000 highest budget movies,', nrow(bst_pic), 'were nominated for Best Picture'))
+
+print(paste('Of the top 4,000 highest budget movies, only', nrow(bst_pic_won), 'won Best Picture'))
+
+
+```
