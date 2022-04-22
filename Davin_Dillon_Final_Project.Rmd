@@ -26,7 +26,7 @@ library(readr) # for reading files
 library(ggplot2) # for plotting
 library(plotly) # for interactive plotting
 library(dplyr) # data manipulation
-
+library(flextable)
 ```
 
 
@@ -37,6 +37,9 @@ oscars <- read_csv('the_oscar_award.csv') # oscar winners and losers
 oscars <- oscars %>%    # rename year for join
   rename('year' = 'year_film')
 meta <- read_csv('movies_metadata.csv') # majority of data used
+
+inflation <- read_csv('inflation_data.csv') 
+# inflation data for calculations
 
 oscar_titles <- oscars %>% # count number of titles in oscar data
   distinct(film)
@@ -53,9 +56,6 @@ oscar_wn_titles <- oscars %>% # count number of oscar winning movies
 oscars <- oscars %>% 
   rename(Title = 'film')  # rename for joins
 
-
-inflation <- read_csv('inflation_data.csv') 
-# inflation data for calculations
 
 
 adj <- inflation %>% 
@@ -77,7 +77,7 @@ full_budget <- full_join(meta, budget, on = 'Title')
 
 full_bud <- full_budget %>% 
   mutate(budget = pmax(new_budget, meta_budget, na.rm = T)) %>% 
-  select(Title, budget,new_budget, meta_budget, popularity,year,
+  select(Title,genres, budget,new_budget, meta_budget, popularity,year,
          release_date, revenue, runtime, vote_average,
          vote_count,gross)
 # set budget to max of two different budgets.
@@ -105,12 +105,12 @@ full_bud <- full_bud %>%
   mutate(year = replace(year, year == 1900, 2022))
 
 
-adj_bud <- left_join(full_bud, adj,
+adj_bud <- full_join(full_bud, adj,
                              on = c('Title', 'year')) %>% 
   mutate(with_inflation = (as.numeric(budget) * (multiplier))) %>% 
   mutate(gross_inflation = (full_bud$gross * (multiplier))) %>% 
-  select(Title,vote_average, vote_count, budget, with_inflation, gross_inflation, 
-         year, gross,
+  select(Title,genres,vote_average, vote_count, budget,
+         with_inflation, gross_inflation, year, gross,
          release_date) %>% 
   arrange(desc(with_inflation))  
   
@@ -121,28 +121,28 @@ adj_bud <- left_join(full_bud, adj,
 ```{r, include = F}
 
 
-osc_bud <-  left_join(adj_bud, oscars, on  = c('Title', 'year'))
-
+osc_bud <-  full_join(adj_bud, oscars, on  = c('Title'))
 
 bst_act <- osc_bud %>% 
   group_by(Title) %>% 
   filter(str_detect(category, 'ACT')) %>% 
-  select(Title, budget, category)
+  select(Title, genres, budget, category, winner)
+bst_act_wn <- bst_act %>% 
+  filter(!is.na(winner)) %>% 
+  filter(winner == T) %>% 
+  distinct(Title, .keep_all = T)
 
 star_wars <- osc_bud %>% 
   group_by(Title) %>% 
   filter(str_detect(Title, 'Star Wars'))
 
 
-wng_titles <- osc_bud %>% 
-  filter(winner == T) %>% 
-  distinct(Title)
 
 bst_pic <-  osc_bud %>% 
   group_by(Title) %>% 
   filter((str_detect(category, 'PIC') | 
             str_detect(category, 'OUT'))) %>% 
-  select(Title, vote_count, vote_average, category, winner)
+  select(Title, genres, vote_count, vote_average, category, winner)
 
 
 bst_pic_won <- bst_pic %>% 
@@ -156,17 +156,6 @@ bst_pic_won <- bst_pic %>%
 noms <- osc_bud %>% 
   distinct(Title)
 
-titans <- osc_bud %>% 
-  filter(Title == 'Titanic')
-
-
-mib <- osc_bud %>% 
-  filter(Title == 'Men in Black')
-
-
-tlk <- osc_bud %>% 
-  filter(Title == 'The Lion King')
-
 
 ```
 
@@ -177,57 +166,76 @@ tlk <- osc_bud %>%
 ```{r, include = F}
 
 osc_pop <-  osc_bud %>% 
-  mutate(vote_count = replace(vote_count, vote_count < 1000, NA)) %>%           filter(vote_count != 0) %>% 
+  mutate(vote_count = replace(vote_count, vote_count < 10000, NA)) %>%           filter(vote_count != 0) %>% 
   filter(!is.na(vote_count))
-# filtered out movies that had less than 1000 votes to make 
-# it more manageable
+# filtered out movies that had less than 10000 votes  
+# for popular  movie set 
 
 
 
-View(osc_pop)
-bst_pic_pop <- osc_pop %>% 
-  group_by(Title) %>% 
-  filter((str_detect(category, 'PIC') | str_detect(category, 'OUT'))) %>% 
-  select(Title, vote_count, category, winner)
 
-
-```
-
-```{r, include = F}
-bst_pic_pop_wn <- osc_pop %>% 
-  group_by(Title) %>% 
-  filter((str_detect(category, 'PIC') | str_detect(category, 'OUT')) & winner == TRUE) %>% 
-  select(Title, vote_count, category, winner)
-
+total_votes <- sum(full_bud$vote_count, na.rm = T)
 ```
 
 
-```{r, include = F}
-bst_pic_pop_ttl <- osc_pop %>% 
-  group_by(Title) %>% 
-  filter((str_detect(category, 'PIC') | str_detect(category, 'OUT'))) %>% 
-  select(Title, vote_count, category, winner) %>% 
-  distinct(Title)
+---
 
-bst_pic_pop_wn_ttl <- osc_pop %>% 
-  group_by(Title) %>% 
-  filter((str_detect(category, 'PIC') | 
-            str_detect(category, 'OUT')) & winner == TRUE) %>% 
-  select(Title, vote_count, category, winner) %>% 
-  distinct(Title)
+## Some Dataset Numbers
+```{r, include = T}
+# glimpse(oscar_titles)
+# glimpse(oscar_wn_titles)
+# glimpse(bst_act %>% distinct(Title))
+# glimpse(bst_pic)
+# glimpse(bst_pic_won)
+# glimpse(noms) 
 
-total_bst_pic <- oscars %>%
-  filter((str_detect(category, 'PIC') | str_detect(category, 'OUT')) & winner == TRUE) %>% 
-  distinct(Title, .keep_all = T)
+print(paste('The data I was able to collect contains',
+            nrow(oscar_titles),
+            'movies nominated for an Academy Award',
+            'since its inception in 1929. Of these',
+            nrow(oscar_titles), 'movies,', 
+            nrow(oscar_wn_titles), 'won at least one',
+            'award.', nrow(bst_pic), 'movies have been nominated',
+            'for Best Picture in its many forms. Out of these,',
+            nrow(bst_pic_won), 'won.',
+            nrow(bst_act %>% distinct(Title)), 'movies have',
+            'had an actor or actress nominated in either',
+            'a leading or supporting role.', nrow(bst_act_wn),
+            'had at least one winner in an acting category.'
+            ))
 
 ```
-
 
 
 ## Popular Movies
 
+```{r, include = T}
+bst_pic_pop_wn <- osc_pop %>% 
+  group_by(Title) %>% 
+  filter((str_detect(category, 'PIC') |
+            str_detect(category, 'OUT')) & winner == TRUE) %>% 
+  select(Title,genres, vote_count, category, winner)
+
+total_popular <- osc_pop %>% 
+  distinct(Title)
+
+bst_pic_pop <- osc_pop %>% 
+  group_by(Title) %>% 
+  filter((str_detect(category, 'PIC') | str_detect(category, 'OUT'))) %>% 
+  select(Title, genres, vote_count, category, winner)
 
 
+print(paste('There are a total of ', total_votes, 'votes',
+            'in the dataset.', nrow(total_popular), 
+            'movies have received at least 10,000 votes on imdb.',
+            'Of these movies, ', nrow(bst_pic_pop), 
+            'were nominated for Best Picture.',
+            nrow(bst_pic_pop_wn), 'won Best Picture.'
+            ))
+
+
+
+```
 
 ---
 
@@ -238,17 +246,56 @@ total_bst_pic <- oscars %>%
 
 osc_bud <- osc_bud[!is.na(osc_bud$budget), ]
 
-p <- osc_bud %>% select(Title, gross, budget, winner) %>% 
-  ggplot(aes(x = as.numeric(budget), y = gross, color = winner, label = Title)) +
+p <- osc_bud %>% select(Title, genres, gross, budget, winner) %>% 
+  ggplot(aes(x = as.numeric(budget), y = gross, color = winner, label = Title, alpha = 0.1)) +
   geom_abline(intercept = 0, slope = 1) +
   geom_point() 
 
 ggplotly(p)
 ```
 
+---
+
+## With Inflation
+
+```{r}
+p2 <- osc_bud %>% select(Title, genres, with_inflation,
+                         gross_inflation, winner) %>% 
+  ggplot(aes(x = as.numeric(with_inflation), y = gross_inflation, color = winner, label = Title, alpha = 0.1)) +
+  geom_abline(intercept = 0, slope = 1) +
+  geom_point() 
+
+ggplotly(p2)
+```
+
+---
+
+
+```{r, include = T}
+high_prof <- osc_bud %>% 
+  filter(budget != 0) %>% 
+  mutate(pct_prof = 100 * (as.numeric(gross)/as.numeric(budget))) %>% 
+  select(Title, budget, gross, pct_prof) %>% 
+  arrange(desc(pct_prof))
+
+flextable(head(high_prof, 50))
 
 
 
+```
+
+---
+
+```{r}
+
+low_prof <- high_prof %>% 
+  na.omit(budget) %>% 
+  arrange(pct_prof)
+
+flextable(head(low_prof, 50))
+
+
+```
 
 
 
