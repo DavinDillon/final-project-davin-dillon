@@ -189,7 +189,7 @@ total_votes <- sum(full_bud$vote_count, na.rm = T)
 # glimpse(bst_pic_won)
 # glimpse(noms) 
 
-print(paste('The data I was able to collect contains',
+cat(paste('The data I was able to collect contains',
             nrow(oscar_titles),
             'movies nominated for an Academy Award',
             'since its inception in 1929. Of these',
@@ -225,7 +225,7 @@ bst_pic_pop <- osc_pop %>%
   select(Title, genres, vote_count, category, winner)
 
 
-print(paste('There are a total of ', total_votes, 'votes',
+cat(paste('There are a total of ', total_votes, 'votes',
             'in the dataset.', nrow(total_popular), 
             'movies have received at least 10,000 votes on imdb.',
             'Of these movies, ', nrow(bst_pic_pop), 
@@ -271,6 +271,8 @@ ggplotly(p2)
 ---
 
 
+## Highest Percent Profit
+
 ```{r, include = T}
 high_prof <- osc_bud %>% 
   filter(budget != 0) %>% 
@@ -286,6 +288,9 @@ flextable(head(high_prof, 50))
 
 ---
 
+## Lowest Percent Profit
+
+
 ```{r}
 
 low_prof <- high_prof %>% 
@@ -297,5 +302,44 @@ flextable(head(low_prof, 50))
 
 ```
 
+---
+
+## Who makes more money?
+
+
+
+```{r}
+win_prof <- osc_bud %>% 
+  filter(winner == T) %>% 
+  filter(!is.na(budget)) %>% 
+  filter(!is.na(gross)) %>% 
+  mutate(winner_profit = 100*sum(as.numeric(gross))/sum(as.numeric(budget))) 
+
+lsr_prof <- osc_bud %>% 
+  filter(winner == F) %>% 
+  filter(!is.na(budget)) %>% 
+  filter(!is.na(gross)) %>% 
+  mutate(loser_profit = 100*sum(as.numeric(gross))/sum(as.numeric(budget))) 
+
+no_nom_prof <- osc_bud %>% 
+  filter(is.na(winner)) %>% 
+  filter(!is.na(budget)) %>% 
+  filter(!is.na(gross)) %>% 
+  mutate(nonnom_profit = 100*sum(as.numeric(gross))/sum(as.numeric(budget))) 
+
+
+
+
+cat('The average Oscar winner percent profit is',
+    win_prof$winner_profit[1],'\n')
+
+
+cat('The average Oscar loser percent profit is',
+    lsr_prof$loser_profit[1], '\n')
+
+cat('The average non-nominated percent profit is',
+    no_nom_prof$nonnom_profit[1], '\n')
+
+```
 
 
