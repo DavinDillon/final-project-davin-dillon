@@ -1,100 +1,254 @@
 ---
 title: "Best Movies?"
-output: html_document
-date: '2022-04-18'
+    
+date: "2022-04-18"
+output: slidy_presentation
+
 ---
+
+
+
+
+
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = F)
 ```
 
+
+
+
+
 ``` {r, include = F}
 
-library(tidyverse)
-library(XML)
-library(readr)
-
-```
-```{r, include = F}
-library(dplyr)
-
-
+library(tidyverse) # multiple tidy packages
+library(readr) # for reading files
+library(ggplot2) # for plotting
+library(plotly) # for interactive plotting
+library(dplyr) # data manipulation
 
 ```
 
 
 
 ```{r, include = F}
-options(scipen = 0)
-budget <- read_csv('top_4000_production_budget.csv')
-oscars <- read_csv('the_oscar_award.csv')
-oscars <- oscars %>% rename('Movie Title' = 'film')
-inflation <- read_csv('inflation_data.csv')
+budget <- read_csv('movies_budget.csv') # budget including new movies
+oscars <- read_csv('the_oscar_award.csv') # oscar winners and losers
+oscars <- oscars %>%    # rename year for join
+  rename('year' = 'year_film')
+meta <- read_csv('movies_metadata.csv') # majority of data used
+
+oscar_titles <- oscars %>% # count number of titles in oscar data
+  distinct(film)
+
+budget <- budget %>% 
+  rename(vote_average = score) %>% # renaming vote data for joins etc
+  rename(vote_count = votes)
+
+oscar_wn_titles <- oscars %>% # count number of oscar winning movies
+  filter(winner == T) %>% 
+  distinct(film)
+
+
+oscars <- oscars %>% 
+  rename(Title = 'film')  # rename for joins
+
+
+inflation <- read_csv('inflation_data.csv') 
+# inflation data for calculations
+
 
 adj <- inflation %>% 
-  mutate(multiplier = (amount / 1.38)/16.5362319)
+  mutate(multiplier = (22.82/amount)) 
+# create multiplier column for easy calculations
 
+budget <- budget %>% 
+  rename(new_budget = Budget)  # rename for joins etc
 
-osc_bud <-  left_join(budget,oscars , on = 'Movie Title') 
-osc_bud <- osc_bud %>% na.omit(osc_bud$'Production Budget') %>% rename('Budget' = 'Production Budget') %>%  rename('Title' = 'Movie Title') %>%
-  rename('year' = 'year_film') %>% relocate('Title', 'Budget')
-
-View(osc_bud)
-
-adjusted_budget <- full_join(osc_bud, adj, on = 'year') %>% 
-  mutate(with_inflation = (Budget * (1/multiplier))) %>% 
-  mutate(gross_inflation = (osc_bud$'Worldwide Gross' * (1/multiplier))) %>% 
-  select(Title, Budget, with_inflation, gross_inflation, category, year, winner) %>% 
-  arrange(desc(with_inflation))
-top_1000_with_inflation <- adjusted_budget[0:1000,]
-
-View(top_1000_with_inflation)
-
-adj_bud_won <- adjusted_budget %>% 
-  filter(winner == T) %>% 
-  arrange(desc(with_inflation))
+```
 
 
 
-n_of_4000 <- osc_bud %>%  distinct(osc_bud$'Title')
+```{r, include = F}
+options(scipen = 100) # avoid scientific notation 
+
+full_budget <- full_join(meta, budget, on = 'Title') 
+# full join of metadata and budget data to get new and old movies etc
+
+full_bud <- full_budget %>% 
+  mutate(budget = pmax(new_budget, meta_budget, na.rm = T)) %>% 
+  select(Title, budget,new_budget, meta_budget, popularity,year,
+         release_date, revenue, runtime, vote_average,
+         vote_count,gross)
+# set budget to max of two different budgets.
+# picking max is arbitrary, but needed in most cases
+
+
+
+
+
+full_bud <- full_bud[-c(1,2,3),] %>%
+   arrange(desc(as.numeric(budget)))
+# remove first three unnecessary rows
+
+
+# format(date, format="%Y")
+
+```
+
+
+
+
+```{r, include = F}
+
+full_bud <- full_bud %>% 
+  mutate(year = replace(year, year == 1900, 2022))
+
+
+adj_bud <- left_join(full_bud, adj,
+                             on = c('Title', 'year')) %>% 
+  mutate(with_inflation = (as.numeric(budget) * (multiplier))) %>% 
+  mutate(gross_inflation = (full_bud$gross * (multiplier))) %>% 
+  select(Title,vote_average, vote_count, budget, with_inflation, gross_inflation, 
+         year, gross,
+         release_date) %>% 
+  arrange(desc(with_inflation))  
+  
+
+```
+
+
+```{r, include = F}
+
+
+osc_bud <-  left_join(adj_bud, oscars, on  = c('Title', 'year'))
+
 
 bst_act <- osc_bud %>% 
   group_by(Title) %>% 
   filter(str_detect(category, 'ACT')) %>% 
-  select(Title, Budget, category)
+  select(Title, budget, category)
 
-n_of_4000_won <- osc_bud %>% 
+star_wars <- osc_bud %>% 
+  group_by(Title) %>% 
+  filter(str_detect(Title, 'Star Wars'))
+
+
+wng_titles <- osc_bud %>% 
   filter(winner == T) %>% 
   distinct(Title)
 
-bst_pic <- osc_bud %>% 
+bst_pic <-  osc_bud %>% 
   group_by(Title) %>% 
-  filter(category == 'BEST PICTURE') %>% 
-  select(Title, Budget, category, winner)
+  filter((str_detect(category, 'PIC') | 
+            str_detect(category, 'OUT'))) %>% 
+  select(Title, vote_count, vote_average, category, winner)
+
+
 bst_pic_won <- bst_pic %>% 
   filter(winner == T)
+```
 
 
-noms <- oscars %>% rename('Title' = 'Movie Title') %>% 
+
+```{r, include = F}
+
+noms <- osc_bud %>% 
   distinct(Title)
-nrow(noms)
-```
 
-The 1934 film "Men in Black" was a short by the Three Stooges. It was their only Oscar nomination. 
+titans <- osc_bud %>% 
+  filter(Title == 'Titanic')
 
 
-```{r}
+mib <- osc_bud %>% 
+  filter(Title == 'Men in Black')
 
-print('')
-print(paste('There are',nrow(n_of_4000), 'of the top 4,000 highest budget movies that have been nominated for Oscars'))
 
-print(paste('There are',nrow(n_of_4000_won), 'of the top 4,000 highest budget movies that have won Oscars'))
-
-print(paste('Of the top 4,000 highest budget movies,', nrow(bst_act), 'were nominated for one of the best acting categories.'))
-
-print(paste('Of the top 4,000 highest budget movies,', nrow(bst_pic), 'were nominated for Best Picture'))
-
-print(paste('Of the top 4,000 highest budget movies, only', nrow(bst_pic_won), 'won Best Picture'))
+tlk <- osc_bud %>% 
+  filter(Title == 'The Lion King')
 
 
 ```
+
+
+
+
+
+```{r, include = F}
+
+osc_pop <-  osc_bud %>% 
+  mutate(vote_count = replace(vote_count, vote_count < 1000, NA)) %>%           filter(vote_count != 0) %>% 
+  filter(!is.na(vote_count))
+# filtered out movies that had less than 1000 votes to make 
+# it more manageable
+
+
+
+View(osc_pop)
+bst_pic_pop <- osc_pop %>% 
+  group_by(Title) %>% 
+  filter((str_detect(category, 'PIC') | str_detect(category, 'OUT'))) %>% 
+  select(Title, vote_count, category, winner)
+
+
+```
+
+```{r, include = F}
+bst_pic_pop_wn <- osc_pop %>% 
+  group_by(Title) %>% 
+  filter((str_detect(category, 'PIC') | str_detect(category, 'OUT')) & winner == TRUE) %>% 
+  select(Title, vote_count, category, winner)
+
+```
+
+
+```{r, include = F}
+bst_pic_pop_ttl <- osc_pop %>% 
+  group_by(Title) %>% 
+  filter((str_detect(category, 'PIC') | str_detect(category, 'OUT'))) %>% 
+  select(Title, vote_count, category, winner) %>% 
+  distinct(Title)
+
+bst_pic_pop_wn_ttl <- osc_pop %>% 
+  group_by(Title) %>% 
+  filter((str_detect(category, 'PIC') | 
+            str_detect(category, 'OUT')) & winner == TRUE) %>% 
+  select(Title, vote_count, category, winner) %>% 
+  distinct(Title)
+
+total_bst_pic <- oscars %>%
+  filter((str_detect(category, 'PIC') | str_detect(category, 'OUT')) & winner == TRUE) %>% 
+  distinct(Title, .keep_all = T)
+
+```
+
+
+
+## Popular Movies
+
+
+
+
+---
+
+## Plotting Profit
+
+```{r, include = T}
+
+
+osc_bud <- osc_bud[!is.na(osc_bud$budget), ]
+
+p <- osc_bud %>% select(Title, gross, budget, winner) %>% 
+  ggplot(aes(x = as.numeric(budget), y = gross, color = winner, label = Title)) +
+  geom_abline(intercept = 0, slope = 1) +
+  geom_point() 
+
+ggplotly(p)
+```
+
+
+
+
+
+
+
