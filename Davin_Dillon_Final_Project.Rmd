@@ -66,13 +66,13 @@ budget <- budget %>%
 
 
 
-<span style = "color:navy;, font-family:Arial, Helvetica, sans-serif;"><ul><li>The largest part of my data comes from a data set I got from github. [yash91sharma github](https://raw.githubusercontent.com/yash91sharma/IMDB-Movie-Dataset-Analysis/master/movie_metadata.csv) created the data for a project similar to mine in which they asked which countries made the most movies.This data set contains `r comma(nrow(meta), digits = 0)` rows of data and seems to have been made around 2017.</li>
+<span style = "color:navy;, font-family:Arial, Helvetica, sans-serif;"><ul><li>The largest part of my data comes from a data set I got from github. [<a style = 'color:green;'>yash91sharma github</a>](https://raw.githubusercontent.com/yash91sharma/IMDB-Movie-Dataset-Analysis/master/movie_metadata.csv) created the data for a project similar to mine in which they asked which countries made the most movies.This data set contains `r comma(nrow(meta), digits = 0)` rows of data and seems to have been made around 2017.</li>
 
-<li>I used [alexsychu kaggle](https://www.kaggle.com/code/alexsychu/movie-industry-eda-alex-chu-5-april-2022/data) to gather some more data up to 2020. This second dat set had an additional `r comma(nrow(budget), digits = 0)` rows of data. This user was trying to answer the question of how to predict if a movie will do well.
+<li>I used [<a style = 'color:green;'>alexsychu kaggle</a>](https://www.kaggle.com/code/alexsychu/movie-industry-eda-alex-chu-5-april-2022/data) to gather some more data up to 2020. This second dat set had an additional `r comma(nrow(budget), digits = 0)` rows of data. This user was trying to answer the question of how to predict if a movie will do well.
 
-</li><li>Lastly for movie data, I used data from [unanimad kaggle](https://www.kaggle.com/datasets/unanimad/the-oscar-award) . This data set had `r comma(nrow(oscars),digits = 0)` rows of data and this kaggle user asked various questions about who won Oscars.
+</li><li>Lastly for movie data, I used data from [<a style = 'color:green;'>unanimad kaggle</a>](https://www.kaggle.com/datasets/unanimad/the-oscar-award) . This data set had `r comma(nrow(oscars),digits = 0)` rows of data and this kaggle user asked various questions about who won Oscars.
 
-</li><li>My last and only 'non-movie' data set comes from [officialdata.org](https://www.officialdata.org/us/inflation/1800?amount=1#:~:text=Value%20of%20%241%20from%201800%20to%202022&text=The%20dollar%20had%20an%20average,Labor%20Statistics%20consumer%20price%20index.) , where I obtained 223 rows of inflation data which allowed me to calculate budgets and gross revenue with inflation as a factor.</li></ul></span>
+</li><li>My last and only 'non-movie' data set comes from [<a style = 'color:green;'>officialdata.org</a>](https://www.officialdata.org/us/inflation/1800?amount=1#:~:text=Value%20of%20%241%20from%201800%20to%202022&text=The%20dollar%20had%20an%20average,Labor%20Statistics%20consumer%20price%20index.) , where I obtained 223 rows of inflation data which allowed me to calculate budgets and gross revenue with inflation as a factor.</li></ul></span>
 
 ```{r, include = F}
 options(scipen = 100) # avoid scientific notation 
