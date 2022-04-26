@@ -26,15 +26,42 @@ library(gridExtra) # side by side plots
 
 ```
 
+
+
 ```{r, include = F}
+
+
+
 budget <- read_csv('movies_budget.csv') # budget including new movies
 oscars <- read_csv('the_oscar_award.csv') # oscar winners and losers
-oscars <- oscars %>%    # rename year for join
-  rename('year' = 'year_film')
+
 meta <- read_csv('movies_metadata.csv') # majority of data used
 
 inflation <- read_csv('inflation_data.csv') 
 # inflation data for calculations
+
+```
+
+<span style = "color:navy;, font-family:Arial, Helvetica, sans-serif;"><ul><li>The largest part of my data comes from a data set I got from github. [<a style = 'color:green;'>yash91sharma github</a>](https://raw.githubusercontent.com/yash91sharma/IMDB-Movie-Dataset-Analysis/master/movie_metadata.csv) created the data for a project similar to mine in which they asked which countries made the most movies.This data set contains `r comma(nrow(meta), digits = 0)` rows of data and seems to have been made around 2017.</li>
+
+<li>I used [<a style = 'color:green;'>alexsychu kaggle</a>](https://www.kaggle.com/code/alexsychu/movie-industry-eda-alex-chu-5-april-2022/data) to gather some more data up to 2020. This second dat set had an additional `r comma(nrow(budget), digits = 0)` rows of data. This user was trying to answer the question of how to predict if a movie will do well.
+
+</li><li>Lastly for movie data, I used data from [<a style = 'color:green;'>unanimad kaggle</a>](https://www.kaggle.com/datasets/unanimad/the-oscar-award) . This data set had `r comma(nrow(oscars),digits = 0)` rows of data and this kaggle user asked various questions about who won Oscars.
+
+</li><li>My last and only 'non-movie' data set comes from [<a style = 'color:green;'>officialdata.org</a>](https://www.officialdata.org/us/inflation/1800?amount=1#:~:text=Value%20of%20%241%20from%201800%20to%202022&text=The%20dollar%20had%20an%20average,Labor%20Statistics%20consumer%20price%20index.) , where I obtained 223 rows of inflation data which allowed me to calculate budgets and gross revenue with inflation as a factor.</li></ul></span>
+
+
+---
+
+<span style = "color:navy;, font-family:Arial, Helvetica, sans-serif;"><h2>Data Wrangling</h2>
+There were many renames and some work to choose a budget in some cases. Once I had the columns I wanted, I set in on joining the data together. First, I joined the meta data with the budget data to include all of the titles for which I had information. My next adventure (or misadventure) was to join this data with the inflation data. Once that was done, all that was left was joining this information with the Oscar data. All in all, I used three full joins. </span>
+
+
+
+```{r, echo = T, warning = F}
+
+oscars <- oscars %>%    # rename year for join
+  rename('year' = 'year_film')
 
 meta$year <-  format(as.Date(meta$release_date, format = "%m/%d/%Y"), "%Y")
 
@@ -42,9 +69,7 @@ blue = '#000080'
   
 meta <- meta %>% 
   mutate(year = as.numeric(year))
-```
 
-```{r, include = F}
 # renames
 budget <- budget %>% 
   rename(vote_average = score) %>% # renaming vote data for joins etc
@@ -62,19 +87,7 @@ adj <- inflation %>%
 budget <- budget %>% 
   rename(new_budget = Budget)  # rename for joins etc
 
-```
 
-
-
-<span style = "color:navy;, font-family:Arial, Helvetica, sans-serif;"><ul><li>The largest part of my data comes from a data set I got from github. [<a style = 'color:green;'>yash91sharma github</a>](https://raw.githubusercontent.com/yash91sharma/IMDB-Movie-Dataset-Analysis/master/movie_metadata.csv) created the data for a project similar to mine in which they asked which countries made the most movies.This data set contains `r comma(nrow(meta), digits = 0)` rows of data and seems to have been made around 2017.</li>
-
-<li>I used [<a style = 'color:green;'>alexsychu kaggle</a>](https://www.kaggle.com/code/alexsychu/movie-industry-eda-alex-chu-5-april-2022/data) to gather some more data up to 2020. This second dat set had an additional `r comma(nrow(budget), digits = 0)` rows of data. This user was trying to answer the question of how to predict if a movie will do well.
-
-</li><li>Lastly for movie data, I used data from [<a style = 'color:green;'>unanimad kaggle</a>](https://www.kaggle.com/datasets/unanimad/the-oscar-award) . This data set had `r comma(nrow(oscars),digits = 0)` rows of data and this kaggle user asked various questions about who won Oscars.
-
-</li><li>My last and only 'non-movie' data set comes from [<a style = 'color:green;'>officialdata.org</a>](https://www.officialdata.org/us/inflation/1800?amount=1#:~:text=Value%20of%20%241%20from%201800%20to%202022&text=The%20dollar%20had%20an%20average,Labor%20Statistics%20consumer%20price%20index.) , where I obtained 223 rows of inflation data which allowed me to calculate budgets and gross revenue with inflation as a factor.</li></ul></span>
-
-```{r, include = F}
 options(scipen = 100) # avoid scientific notation 
 
 full_budget <- full_join(meta, budget, on = 'Title') 
@@ -96,9 +109,6 @@ full_bud <- full_bud[-c(1,2,3),] %>%
 
 # format(date, format="%Y")
 
-```
-
-```{r, include = F}
 
 full_bud <- full_bud %>% 
   mutate(year = replace(year, year == 1900, 2022))
@@ -115,41 +125,21 @@ adj_bud <- full_join(full_bud, adj,
   arrange(desc(with_inflation))  
   
 
-```
-
-```{r, include = F}
-
 
 osc_bud <-  full_join(adj_bud, oscars, on  = c('Title'))
 
 
 
-
-star_wars <- osc_bud %>% 
-  group_by(Title) %>% 
-  filter(str_detect(Title, 'Star Wars'))
-
-
-
 ```
 
-```{r, include = F}
 
+
+
+```{r, include = F}
+knitr::opts_chunk$set(echo = F)
 noms <- osc_bud %>% 
   distinct(Title)
 
-```
-
----
-
-
-<span style = "color:navy;, font-family:Arial, Helvetica, sans-serif;">
-There were many renames and some work to choose a budget in some cases. Once I had the columns I wanted, I set in on joining the data together. First, I joined the meta data with the budget data to include all of the titles for which I had information. My next adventure (or misadventure) was to join this data with the inflation data. Once that was done, all that was left was joining this information with the Oscar data. All in all, I used three full joins. </span>
-
-
-
-
-```{r, include = F}
 
 osc_pop <-  osc_bud %>% 
   mutate(vote_count = replace(vote_count, vote_count < 10000, NA)) %>%           filter(vote_count != 0) %>% 
@@ -192,17 +182,22 @@ total_noms <- osc_bud %>%
 
 
 total_wins <- osc_bud %>% 
-  filter(winner == T)
+  filter(winner == T) %>% 
+  distinct(Title, .keep_all = T)
 
 bst_pic <-  osc_bud %>% 
   group_by(Title) %>% 
   filter((str_detect(category, 'PIC') | 
             str_detect(category, 'OUT'))) %>% 
-  select(Title, year,budget, with_inflation, gross_inflation, gross, genres, vote_count, vote_average, category, winner)
+  select(Title, year,budget, with_inflation,
+         gross_inflation, gross, genres, vote_count,
+         vote_average, category, winner) %>% 
+  distinct(Title, .keep_all = T)
 
 
 bst_pic_won <- bst_pic %>% 
-  filter(winner == T)
+  filter(winner == T) %>% 
+  distinct(Title, .keep_all = T)
 
 bst_act <- osc_bud %>% 
   group_by(Title) %>% 
@@ -218,34 +213,7 @@ bst_act_wn <- bst_act %>%
 ```
 
 
-[The data I was able to collect contains `r comma(nrow(oscar_titles), digits = 0)` movies nominated for an Academy Award since its inception in 1929. Of these `r comma(nrow(oscar_titles),digits = 0)` movies. `r comma(nrow(oscar_wn_titles), digits = 0)` won at least one award. There have been `r comma(nrow(total_noms), digits = 0)` total Oscar nominations, and `r comma(nrow(total_wins), digits = 0)` total Oscar wins in the dataset. `r comma(nrow(bst_pic), digits = 0)` movies have been nominated for Best Picture in its many forms. Out of these, `r comma(nrow(bst_pic_won), digits = 0)` won.`r comma(nrow(bst_act %>% distinct(Title)), digits = 0)` movies have had an actor or actress nominated in either a leading or supporting role.`r comma(nrow(bst_act_wn), digits = 0)` movies had at least one winner in an acting category. ]{style="color:navy;, font-family:Arial, Helvetica, sans-serif;"}
-
-
-
----
-
-
-
-<span style = "color:navy;, font-family:Arial, Helvetica, sans-serif;"><h2>Popular Movies</h2></span>
-
-```{r, include = T}
-bst_pic_pop_wn <- osc_pop %>% 
-  group_by(Title) %>% 
-  filter((str_detect(category, 'PIC') |
-            str_detect(category, 'OUT')) & winner == TRUE) %>% 
-  select(Title,genres, vote_count, category, winner)
-
-total_popular <- osc_pop %>% 
-  distinct(Title)
-
-bst_pic_pop <- osc_pop %>% 
-  group_by(Title) %>% 
-  filter((str_detect(category, 'PIC') | str_detect(category, 'OUT'))) %>% 
-  select(Title, genres, vote_count, category, winner)
-
-```
-
-<span style = "color:navy;, font-family:Arial, Helvetica, sans-serif;">[ There are a total of `r comma(total_votes, digits = 0)` votes in the dataset.`r comma(nrow(total_popular), digits = 0)` movies have received at least 10,000 votes on imdb. Of these movies, `r comma(nrow(bst_pic_pop), digits = 0)` were nominated for Best Picture. `r comma(nrow(bst_pic_pop_wn), digits = 0)` won Best Picture. Doing the math, this means that `r comma((nrow(bst_pic_won) - nrow(bst_pic_pop_wn)), digits = 0)` Best Picture winners have less than 10,000 votes on imdb according to this data.]{style="color:navy;, font-family:Arial, Helvetica, sans-serif;"}</span>
+[The data I was able to collect contains `r comma(nrow(oscar_titles), digits = 0)` movies nominated for an Academy Award since its inception in 1929. Of these `r comma(nrow(oscar_titles),digits = 0)` movies. `r comma(nrow(oscar_wn_titles), digits = 0)` won at least one award. There have been `r comma(nrow(total_noms), digits = 0)` total Oscar nominations, and `r comma(nrow(total_wins), digits = 0)` total Oscar wins in the dataset. `r comma(nrow(bst_pic), digits = 0)` movies have been nominated for Best Picture in its many forms. Out of these, `r comma(nrow(bst_pic_won), digits = 0)` won. `r comma(nrow(bst_act %>% distinct(Title)), digits = 0)` movies have had an actor or actress nominated in either a leading or supporting role.  `r comma(nrow(bst_act_wn), digits = 0)` movies had at least one winner in an acting category. ]{style="color:navy;, font-family:Arial, Helvetica, sans-serif;"}
 
 
 ---
@@ -259,7 +227,7 @@ osc_bud <- osc_bud[!is.na(osc_bud$budget), ]
 osc_bud <- osc_bud %>% 
   mutate(budget = as.numeric(budget))
 p <- osc_bud %>% select(Title, genres, gross, budget, winner) %>% 
-  ggplot(aes(x = budget, y = gross, color = winner, label = Title, alpha = 0.1)) +
+  ggplot(aes(x = budget, y = gross, color = winner, label = Title), alpha = 0.1) +
   geom_abline(intercept = 0, slope = 1) +
   geom_point() +
   theme(axis.text.x = element_text(angle = -90,
@@ -343,7 +311,7 @@ money_plot <- osc_bud %>% select(Title, genres, gross,
                                  budget,with_inflation,
                                  gross_inflation, winner) %>%
   ggplot() +
-  geom_density(aes((budget), fill = winner, alpha = 0.4))   +
+  geom_density(aes((budget), fill = winner), alpha = 0.4)   +
   theme(axis.text.x= element_text(angle=-90)) +
   xlim(0, 60000000) +
   ylim(0, 0.00000035) +
@@ -361,7 +329,7 @@ money_plot2 <- osc_bud %>% select(Title, genres,
                                   budget, winner, 
                                   gross_inflation) %>%
   ggplot() +
-  geom_density(aes(with_inflation, fill = winner, alpha = 0.4))+
+  geom_density(aes(with_inflation, fill = winner), alpha = 0.4)+
   theme(axis.text.x=element_text(angle=-90)) +
   xlim(0, 60000000) +
   ylim(0, 0.00000035) +
@@ -401,7 +369,7 @@ prof_plot <- osc_bud %>% select(Title, genres, gross,
                                 budget,with_inflation,
                                 gross_inflation,  winner) %>% 
   ggplot() +
-  geom_density(aes((gross), fill = winner, alpha = 0.4))   + 
+  geom_density(aes((gross), fill = winner), alpha = 0.4)   + 
   xlim(0, 200000000) + 
   ylim(0, 0.000000070) +
   theme(axis.text.x = element_text(angle = -90,
@@ -416,7 +384,7 @@ ggplotly(prof_plot)
 prof_plot2 <- osc_bud %>% select(Title, genres, gross,
                                 budget,gross_inflation, winner) %>% 
   ggplot() +
-  geom_density(aes(gross_inflation, fill = winner, alpha = 0.4))   +     xlim(0, 200000000) +
+  geom_density(aes(gross_inflation, fill = winner), alpha = 0.4)   +     xlim(0, 200000000) +
   ylim(0, 0.000000070) +
   theme(axis.text.x = element_text(angle = -90,
                                    size = 5, color = blue ),
