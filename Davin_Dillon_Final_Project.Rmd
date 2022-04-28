@@ -42,7 +42,7 @@ inflation <- read_csv('inflation_data.csv')
 
 ```
 
-<span style = "color:navy;, font-family:Arial, Helvetica, sans-serif;"><ul><li>The largest part of my data comes from a data set I got from github. [<a style = 'color:green;'>yash91sharma github</a>](https://raw.githubusercontent.com/yash91sharma/IMDB-Movie-Dataset-Analysis/master/movie_metadata.csv) created the data for a project similar to mine in which they asked which countries made the most movies.This data set contains `r comma(nrow(meta), digits = 0)` rows of data and seems to have been made around 2017.</li>
+<span style = "color:navy;, font-family:Arial, Helvetica, sans-serif;"><h2>Paying for Oscars or Oscars for Pay?</h2><ul><li>The largest part of my data comes from a data set I got from github. [<a style = 'color:green;'>yash91sharma github</a>](https://raw.githubusercontent.com/yash91sharma/IMDB-Movie-Dataset-Analysis/master/movie_metadata.csv) created the data for a project similar to mine in which they asked which countries made the most movies.This data set contains `r comma(nrow(meta), digits = 0)` rows of data and seems to have been made around 2017.</li>
 
 <li>I used [<a style = 'color:green;'>alexsychu kaggle</a>](https://www.kaggle.com/code/alexsychu/movie-industry-eda-alex-chu-5-april-2022/data) to gather some more data up to 2020. This second dat set had an additional `r comma(nrow(budget), digits = 0)` rows of data. This user was trying to answer the question of how to predict if a movie will do well.
 
@@ -54,7 +54,7 @@ inflation <- read_csv('inflation_data.csv')
 ---
 
 <span style = "color:navy;, font-family:Arial, Helvetica, sans-serif;"><h2>Data Wrangling</h2>
-There were many renames and some work to choose a budget in some cases. Once I had the columns I wanted, I set in on joining the data together. First, I joined the meta data with the budget data to include all of the titles for which I had information. My next adventure (or misadventure) was to join this data with the inflation data. Once that was done, all that was left was joining this information with the Oscar data. All in all, I used three full joins. </span>
+There were many renames and some work to choose a movie budget in some cases. Once I had the columns I wanted, I set in on joining the data together. First, I joined the meta data with the budget data to include all of the titles for which I had information. My next adventure (or misadventure) was to join this data with the inflation data. Once that was done, all that was left was joining this information with the Oscar data. All in all, I used three full joins. </span>
 
 
 
@@ -451,8 +451,6 @@ ggplotly(r)
 
 
 
-```
-```{r, include = F}
 min_bud <- bst_pic_won %>% 
   filter(with_inflation > 0) %>% 
   filter(with_inflation == min(with_inflation)) %>% 
@@ -471,6 +469,7 @@ max_bud <- bst_pic_won %>%
 
 max_bud_title <- head(max_bud$Title, 1)
 max_bud_cost <- head(max_bud$with_inflation, 1)
+
 
 
 ```
