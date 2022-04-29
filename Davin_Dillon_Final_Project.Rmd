@@ -30,8 +30,6 @@ library(gridExtra) # side by side plots
 
 ```{r, include = F}
 
-
-
 budget <- read_csv('movies_budget.csv') # budget including new movies
 oscars <- read_csv('the_oscar_award.csv') # oscar winners and losers
 
@@ -123,11 +121,9 @@ adj_bud <- full_join(full_bud, adj,
          with_inflation, gross_inflation, year, gross,
          release_date) %>% 
   arrange(desc(with_inflation))  
-  
 
 
 osc_bud <-  full_join(adj_bud, oscars, on  = c('Title'))
-
 
 
 ```
@@ -209,7 +205,6 @@ bst_act_wn <- bst_act %>%
   filter(winner == T) %>% 
   distinct(Title, .keep_all = T)
 
-
 ```
 
 
@@ -254,8 +249,6 @@ high_prof <- osc_bud %>%
 
 flextable(head(high_prof, 50))
 
-
-
 ```
 
 ---
@@ -269,7 +262,6 @@ low_prof <- high_prof %>%
   arrange(pct_prof)
 
 flextable(head(low_prof, 50))
-
 
 ```
 
@@ -287,24 +279,26 @@ osc_bud <- osc_bud %>%
   mutate(budget = as.numeric(budget)) %>%
   mutate(gross = as.numeric(gross))
 
-
 win_prof <- osc_bud %>%
   filter(winner == T) %>%
   filter(!is.na(budget)) %>%
   filter(!is.na(gross)) %>%
-  mutate(winner_profit = (100*sum(gross))/(sum((budget))))
+  mutate(winner_profit = (100*sum(gross))/(sum((budget)))) %>% 
+  mutate(percent = 100 * (gross/budget))
 
 lsr_prof <- osc_bud %>%
   filter(winner == F) %>%
   filter(!is.na(budget)) %>%
   filter(!is.na(gross)) %>%
-  mutate(loser_profit = 100*sum(gross/sum(budget)))
+  mutate(loser_profit = 100*sum(gross/sum(budget))) %>% 
+  mutate(percent = 100 *(gross/budget))
 
 no_nom_prof <- osc_bud %>%
   filter(is.na(winner)) %>%
   filter(!is.na(budget)) %>%
   filter(!is.na(gross)) %>%
-  mutate(nonnom_profit = (100*sum(gross))/(sum(budget)))
+  mutate(nonnom_profit = (100*sum(gross))/(sum(budget))) %>% 
+  mutate(percent = 100 * (gross/budget))
 
 
 money_plot <- osc_bud %>% select(Title, genres, gross,
@@ -339,7 +333,6 @@ money_plot2 <- osc_bud %>% select(Title, genres,
   theme(axis.title.x = element_text(color = blue),
         axis.title.y = element_text(color = blue))
 
-
 ggplotly(money_plot2)
 
 grid.arrange(money_plot, money_plot2, ncol=2)
@@ -348,15 +341,7 @@ grid.arrange(money_plot, money_plot2, ncol=2)
 
 
 
-
-
-
-
-
-<span style = "color:navy; font-family:Arial, Helvetica, sans-serif;"><ul><li>The average Oscar winner budget is $`r comma(mean(win_prof$with_inflation), digits = 2)`.</li><li>The average Oscar loser budget is $`r comma(mean(lsr_prof$with_inflation), digits = 2)`</li><li>The average non-nominated budget is $`r comma(mean(no_nom_prof$with_inflation, digits = 2))`.</li></ul></span>
-
-
-
+<span style = "color:navy; font-family:Arial, Helvetica, sans-serif;"><ul><li>The average Oscar winner budget was $`r comma(mean(win_prof$with_inflation), digits = 2)`.</li><li>The median Oscar winner budget was $`r comma(median(win_prof$with_inflation), digits = 2)`</li><li>The average Oscar loser budget was $`r comma(mean(lsr_prof$with_inflation), digits = 2)`</li><li>The median Oscar loser budget was $`r comma(median(lsr_prof$with_inflation), digits = 2)`</li><li>The average non-nominated budget was $`r comma(mean(no_nom_prof$with_inflation, digits = 2))`.</li><li>The median non-nominated budget was `r comma(median(no_nom_prof$with_inflation), digits = 2)`</li></ul></span>
 
 
 ---
@@ -400,7 +385,7 @@ grid.arrange(prof_plot, prof_plot2, ncol=2)
 
 ```
 
-<span style = "color:navy; font-family:Arial, Helvetica, sans-serif;"><ul><li>The average Oscar winner percent profit is `r comma(win_prof$winner_profit[1], digits = 2)`.</li><li>The average Oscar loser percent profit is `r comma(lsr_prof$loser_profit[1], digits = 2)`</li><li>The average non-nominated percent profit is `r comma(no_nom_prof$nonnom_profit[1], digits = 2)`.</li></ul></span>
+<span style = "color:navy; font-family:Arial, Helvetica, sans-serif;"><ul><li>The average Oscar winner percent profit was `r comma(win_prof$winner_profit[1], digits = 2)`.</li><li>The median percent profit for Oscar winners was `r comma(median(win_prof$percent),digits = 2)`</li><li>The average Oscar loser percent profit was `r comma(lsr_prof$loser_profit[1], digits = 2)`. </li><li>The median percent profit for Oscar losers was `r comma(median(lsr_prof$percent), digits = 2)`. </li><li>The average non-nominated percent profit was `r comma(no_nom_prof$nonnom_profit[1], digits = 2)`.</li><li>The median percent profit for non-nominated movies was `r comma(median(no_nom_prof$percent),digits = 2)`</li></ul></span>
 
 
 ---
@@ -417,8 +402,6 @@ grid.arrange(money_plot, prof_plot, ncol=2)
 grid.arrange(money_plot2, prof_plot2, ncol=2)
 
 
-
-
 ```
 
 ---
@@ -430,12 +413,9 @@ grid.arrange(money_plot2, prof_plot2, ncol=2)
 
 ```{r}
 
-
-
 bst_pic_budgets <- bst_pic_won %>% 
   filter(budget > 0) %>% 
   mutate(year_title = paste(year, ', ', Title))
-
 
 r <- bst_pic_budgets %>%  
   ggplot() +
@@ -447,9 +427,6 @@ r <- bst_pic_budgets %>%
         axis.title.y = element_text(color = blue))
 
 ggplotly(r)
-
-
-
 
 min_bud <- bst_pic_won %>% 
   filter(with_inflation > 0) %>% 
@@ -471,9 +448,7 @@ max_bud_title <- head(max_bud$Title, 1)
 max_bud_cost <- head(max_bud$with_inflation, 1)
 
 
-
 ```
-
 
 
 
