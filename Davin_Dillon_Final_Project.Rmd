@@ -1,7 +1,7 @@
 ---
 title: "Let's Go To The Movies"
 author: 'Davin Dillon'
-date: "2022-04-18"
+date: "2022-05-03"
 output:
   slidy_presentation:
     font_adjustment: 1
@@ -177,9 +177,10 @@ total_noms <- osc_bud %>%
   filter(!is.na(winner))
 
 
+
 total_wins <- osc_bud %>% 
-  filter(winner == T) %>% 
-  distinct(Title, .keep_all = T)
+  filter(winner == T)
+
 
 bst_pic <-  osc_bud %>% 
   group_by(Title) %>% 
@@ -452,7 +453,7 @@ max_bud_cost <- head(max_bud$with_inflation, 1)
 
 
 
-The minimum budget for a Best Picture winner with inflation was `r min_bud_title` with a cost of $`r comma(min_bud_cost, digits = 2)`. The average budget for a Best Picture winner with inflation was$`r comma(avg_bst, digits = 2)`. The maximum budget for a Best Picture winner with inflation was `r max_bud_title` with a cost of $`r comma(max_bud_cost, digits = 2)`.
+The minimum budget for a Best Picture winner with inflation was `r min_bud_title` with a cost of $`r comma(min_bud_cost, digits = 2)`. The average budget for a Best Picture winner with inflation was $`r comma(avg_bst, digits = 2)`. The maximum budget for a Best Picture winner with inflation was `r max_bud_title` with a cost of $`r comma(max_bud_cost, digits = 2)`.
 
 
 
