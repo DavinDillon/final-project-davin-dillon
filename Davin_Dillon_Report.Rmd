@@ -52,7 +52,7 @@ inflation <- read_csv('inflation_data.csv')
 
 ```
 
-<span style = "color:navy;, font-family:Arial, Helvetica, sans-serif;"><h2>Paying for Oscars or Oscars for Pay?</h2><ul><li>The largest part of my data comes from a data set I got from github. [<a style = 'color:green;'>yash91sharma github</a>](https://raw.githubusercontent.com/yash91sharma/IMDB-Movie-Dataset-Analysis/master/movie_metadata.csv) created the data for a project similar to mine in which they asked which countries made the most movies.This data set contains `r comma(nrow(meta), digits = 0)` rows of data and seems to have been made around 2017.</li>
+<span style = "color:navy;, font-family:Arial, Helvetica, sans-serif;"><h2><center>Paying for Oscars or Oscars for Pay?</center></h2><ul><li>The largest part of my data comes from a data set I got from github. [<a style = 'color:green;'>yash91sharma github</a>](https://raw.githubusercontent.com/yash91sharma/IMDB-Movie-Dataset-Analysis/master/movie_metadata.csv) created the data for a project similar to mine in which they asked which countries made the most movies.This data set contains `r comma(nrow(meta), digits = 0)` rows of data and seems to have been made around 2017.</li>
 
 <li>I used [<a style = 'color:green;'>alexsychu kaggle</a>](https://www.kaggle.com/code/alexsychu/movie-industry-eda-alex-chu-5-april-2022/data) to gather some more data up to 2020. This second dat set had an additional `r comma(nrow(budget), digits = 0)` rows of data. This user was trying to answer the question of how to predict if a movie will do well.
 
@@ -63,7 +63,7 @@ inflation <- read_csv('inflation_data.csv')
 
 ---
 
-<span style = "color:navy;, font-family:Arial, Helvetica, sans-serif;"><h2>Data Wrangling</h2>
+<span style = "color:navy;, font-family:Arial, Helvetica, sans-serif;"><h2><center>Data Wrangling</center></h2>
 There were many renames and some work to choose a movie budget in some cases. Once I had the columns I wanted, I set in on joining the data together. First, I joined the meta data with the budget data to include all of the titles for which I had information. My next adventure (or misadventure) was to join this data with the inflation data. Once that was done, all that was left was joining this information with the Oscar data. All in all, I used three full joins. </span>
 
 
@@ -150,7 +150,7 @@ osc_bud <-  full_join(adj_bud, oscars, on  = c('Title'))
 
 ------------------------------------------------------------------------
 
-<span style = "color:navy;, font-family:Arial, Helvetica, sans-serif;"><h2>Some Dataset Numbers</h2></span>
+<span style = "color:navy;, font-family:Arial, Helvetica, sans-serif;"><h2><center>Some Dataset Numbers</center></h2></span>
 
 
 
@@ -206,7 +206,7 @@ bst_act_wn <- bst_act %>%
 ---
 
 
-<span style = "color:navy;, font-family:Arial, Helvetica, sans-serif;"><h2>Plotting Profit</h2></span>
+<span style = "color:navy;, font-family:Arial, Helvetica, sans-serif;"><h2><center>Plotting Profit</center></h2></span>
 
 ```{r}
 
@@ -238,7 +238,7 @@ ggplotly(p)
 ---
 
 
-<span style = "color:navy;, font-family:Arial, Helvetica, sans-serif;"><h2>Highest Percent Profit</h2></span>
+<span style = "color:navy;, font-family:Arial, Helvetica, sans-serif;"><h2><center>Highest Percent Profit</center></h2></span>
 
 ```{r}
 high_prof <- osc_bud %>% 
@@ -253,7 +253,7 @@ flextable(head(high_prof, 50))
 
 ---
 
-<span style = "color:navy;, font-family:Arial, Helvetica, sans-serif;"><h2>Lowest Percent Profit</h2></span>
+<span style = "color:navy;, font-family:Arial, Helvetica, sans-serif;"><h2><center>Lowest Percent Profit</center></h2></span>
 
 ```{r}
 
@@ -269,7 +269,7 @@ flextable(head(low_prof, 50))
 ---
 
 
-<span style = "color:navy;, font-family:Arial, Helvetica, sans-serif;"><h2>Who spends more money?</h2></span>
+<span style = "color:navy;, font-family:Arial, Helvetica, sans-serif;"><h2><center>Who spends more money?</center></h2></span>
 
 
 
@@ -348,7 +348,7 @@ grid.arrange(money_plot, money_plot2, ncol=2)
 
 ---
 
-<span style = "color: navy;, font-family:Arial, Helvetica, sans-serif;"><h2>Who makes more money?</h2></span>
+<span style = "color: navy;, font-family:Arial, Helvetica, sans-serif;"><h2><center>Who makes more money?</center></h2></span>
 
 ```{r}
 
@@ -386,7 +386,7 @@ grid.arrange(prof_plot, prof_plot2, ncol=2)
 ---
 
 <span style = "color:navy; font-family:Arial, Helvetica, sans-serif;">
-<h2> Spent vs Made </h2></span>
+<h2><center> Spent vs Made </center></h2></span>
 
 
 
@@ -403,7 +403,7 @@ grid.arrange(money_plot2, prof_plot2, ncol=2)
 ---
 
 
-<span style = "color:navy; font-family:Arial, Helvetica, sans-serif;"><h2>Best Picture Budgets with Inflation</h2></span>
+<span style = "color:navy; font-family:Arial, Helvetica, sans-serif;"><center><h2>Best Picture Budgets with Inflation</h2></center></span>
 
 
 
