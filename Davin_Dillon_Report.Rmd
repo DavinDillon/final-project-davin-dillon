@@ -105,7 +105,8 @@ full_budget <- full_join(meta, budget, on = 'Title')
 
 full_bud <- full_budget %>% 
   mutate(budget = pmax(new_budget, meta_budget, na.rm = T)) %>% 
-  select(Title,genres, budget,new_budget, meta_budget, popularity,year,
+  select(Title,genres, budget,new_budget,
+         meta_budget, popularity,year,
          release_date, revenue, runtime, vote_average,
          vote_count,gross)
 # set budget to max of two different budgets.
@@ -142,7 +143,7 @@ osc_bud <-  full_join(adj_bud, oscars, on  = c('Title'))
 # 62706 entries, 15 total columns, of which 8 columns used.
 
 ```
-<span style = "color:navy;, font-family:Arial, Helvetica, sans-serif;">I wound up only using 8 of the 15 columns of my final data set. I had planned to look at other aspects, but I eventually realized that was too much for this presentation. Maybe someone else will see what I have done, and decide to dig deeper. Maybe I will come back to it someday.</span>
+<span style = "color:navy;, font-family:Arial, Helvetica, sans-serif;">I wound up only using 8 of the 15 columns of my final data set. A few of these columns were created by manipulating other data.  I had planned to look at more aspects, but I eventually realized that was too much for this presentation. Maybe someone else will see what I have done, and decide to dig deeper. Maybe I will come back to it someday myself.</span>
 
 
 
@@ -199,7 +200,7 @@ bst_act_wn <- bst_act %>%
 ```
 
 
-[The data I was able to collect contains `r comma(nrow(oscar_titles), digits = 0)` movies nominated for an Academy Award since its inception in 1929. Of these `r comma(nrow(oscar_titles),digits = 0)` movies. `r comma(nrow(oscar_wn_titles), digits = 0)` won at least one award. There have been `r comma(nrow(total_noms), digits = 0)` total Oscar nominations, and `r comma(nrow(total_wins), digits = 0)` total Oscar wins in the dataset. `r comma(nrow(bst_pic), digits = 0)` movies have been nominated for Best Picture in its many forms. Out of these, `r comma(nrow(bst_pic_won), digits = 0)` won. `r comma(nrow(bst_act %>% distinct(Title)), digits = 0)` movies have had an actor or actress nominated in either a leading or supporting role.  `r comma(nrow(bst_act_wn), digits = 0)` movies had at least one winner in an acting category. ]{style="color:navy;, font-family:Arial, Helvetica, sans-serif;"}
+[The code above is used to find the numbers contained here. The data I was able to collect contains `r comma(nrow(oscar_titles), digits = 0)` movies nominated for an Academy Award since its inception in 1929. Of these `r comma(nrow(oscar_titles),digits = 0)` movies. `r comma(nrow(oscar_wn_titles), digits = 0)` won at least one award. There have been `r comma(nrow(total_noms), digits = 0)` total Oscar nominations, and `r comma(nrow(total_wins), digits = 0)` total Oscar wins in the dataset. `r comma(nrow(bst_pic), digits = 0)` movies have been nominated for Best Picture in its many forms. Out of these, `r comma(nrow(bst_pic_won), digits = 0)` won. `r comma(nrow(bst_act %>% distinct(Title)), digits = 0)` movies have had an actor or actress nominated in either a leading or supporting role.  `r comma(nrow(bst_act_wn), digits = 0)` movies had at least one winner in an acting category. ]{style="color:navy;, font-family:Arial, Helvetica, sans-serif;"}
 
 
 ---
@@ -229,6 +230,9 @@ p <- osc_bud %>% select(Title, genres, gross, budget, winner) %>%
 
 ggplotly(p)
 ```
+
+<span style = "color:navy;, font-family:Arial, Helvetica, sans-serif;">The scatter plot above plots budget vs gross. Oscar winners are in blue, Oscar losers in red and non-nominated in grey. These colors will mean the same thing throughout this report.</span>
+
 
 
 ---
@@ -275,6 +279,15 @@ osc_bud <- osc_bud %>%
   mutate(budget = as.numeric(budget)) %>%
   mutate(gross = as.numeric(gross))
 # may be at least in part redundant but to be sure numeric
+
+avg_prof <- osc_bud %>% 
+  filter(!is.na(budget)) %>% 
+  filter(!is.na(gross)) %>% 
+  mutate(avg_profit = (100*sum(gross))/(sum(budget))) %>% 
+  mutate(percent = 100 * (gross/budget))
+  
+avg_profit <- head(avg_prof$avg_profit, 1)
+
 
 win_prof <- osc_bud %>%
   filter(winner == T) %>%  # calculate percent profit Oscar winners
@@ -427,11 +440,19 @@ max_bud <- bst_pic_won %>%
 max_bud_title <- head(max_bud$Title, 1) # Title of most expensive
 max_bud_cost <- head(max_bud$with_inflation, 1) # budget of most expensive
 
+
 ```
 
 
+<span style = "color:navy; font-family:Arial, Helvetica, sans-serif;">
+The minimum budget for a Best Picture winner with inflation was `r min_bud_title` with a cost of $`r comma(min_bud_cost, digits = 2)`. The average budget for a Best Picture winner with inflation was $`r comma(avg_bst, digits = 2)`. The maximum budget for a Best Picture winner with inflation was `r max_bud_title` with a cost of $`r comma(max_bud_cost, digits = 2)`.</span>
 
-The minimum budget for a Best Picture winner with inflation was `r min_bud_title` with a cost of $`r comma(min_bud_cost, digits = 2)`. The average budget for a Best Picture winner with inflation was $`r comma(avg_bst, digits = 2)`. The maximum budget for a Best Picture winner with inflation was `r max_bud_title` with a cost of $`r comma(max_bud_cost, digits = 2)`.
+
+---
+
+
+<span style = "color:navy; font-family:Arial, Helvetica, sans-serif;"><center><h2>Summary</h2></center>
+I wanted to look at the relationship between the Oscars and money. Looking at the data, it seems clear that Oscar winning movies both tend to cost more to make and have more profits than Oscar losing movies. Following that trend, Oscar losing movies tent to cost more and have more profits than movies that aren't nominated at all. These results were not surprising, as I would hope that award winning movies would tend to be "better" than movies that win no awards. Still, it hard to say which comes first. Maybe with further investigation into how the money for these movies was spent, might shed more light on an answer. Lastly, it is clear from the Best Picture column chart that a high budget is not a requirement for being an Oscar winner. Lastly I'd just like to add that the movie business seems to be very lucrative. The average percent profit for these movies was `r comma(avg_profit, digits = 2)`. In essence, this means that a $50,000,000 movie will gross on average `r comma(avg_profit * (50000000/100))`.</span>
 
 
 
