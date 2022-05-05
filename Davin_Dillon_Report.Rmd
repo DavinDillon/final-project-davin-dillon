@@ -35,7 +35,7 @@ library(dplyr) # data manipulation
 library(flextable) # pretty tables
 library(formattable) # comma function formatting numbers
 library(gridExtra) # side by side plots
-
+library(kableExtra) # for scrolling table
 ```
 
 <span style = "color:navy;, font-family:Arial, Helvetica, sans-serif;">Here I read in the four data sets I wound up using. I give a brief explanation of each below.</span>
@@ -265,11 +265,22 @@ high_prof <- osc_bud %>%
   filter(budget != 0) %>% 
   mutate(pct_prof = 100 * (as.numeric(gross)/as.numeric(budget))) %>% 
   select(Title, budget, gross, pct_prof) %>% 
-  arrange(desc(pct_prof))
+  arrange(desc(pct_prof)) %>% 
+  distinct(Title, .keep_all = T)
 
-flextable(head(high_prof, 25))
+my_table <-  kable(head(high_prof, 100),
+      format.args = list(big.mark = ",")) %>%
+  kable_styling(
+    font_size = 15,
+    bootstrap_options = c("striped", "hover", "condensed")
+  ) 
 
-
+ 
+scroll_box(my_table, height = '500px', width = '500px', 
+           box_css = "border: 1px solid #ddd; padding: 5px; ",
+           extra_css = "color: navy;",
+           fixed_thead = TRUE
+)
 ```
 
 ---
@@ -283,8 +294,19 @@ low_prof <- high_prof %>%
   arrange(pct_prof) %>% 
   distinct(Title, .keep_all = T)
 
-flextable(head(low_prof, 25))
+my_table2 <- kable(head(low_prof, 100),
+      format.args = list(big.mark = ",")) %>%
+  kable_styling(
+    font_size = 15,
+    bootstrap_options = c("striped", "hover", "condensed")
+  ) 
 
+
+scroll_box(my_table2, height = '500px', width = '500px', 
+           box_css = "border: 1px solid #ddd; padding: 5px; ",
+           extra_css = "color: navy;",
+           fixed_thead = TRUE
+)
 ```
 
 
