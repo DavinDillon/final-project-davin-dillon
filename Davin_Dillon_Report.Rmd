@@ -206,7 +206,8 @@ bst_act_wn <- bst_act %>%
 ---
 
 
-<span style = "color:navy;, font-family:Arial, Helvetica, sans-serif;"><h2><center>Plotting Profit</center></h2></span>
+<span style = "color:navy;, font-family:Arial, Helvetica, sans-serif;"><h2><center>Plotting Profit</center></h2>
+The first graph is a scatter plot of budget vs gross. Because there were so many, I also wanted to make the scatter plot with non-nominated movies removed. The last plot shows the same information with inflation. The black lines are the break even line.</span>
 
 ```{r}
 
@@ -226,9 +227,28 @@ p <- osc_bud %>% select(Title, genres, gross, budget, winner) %>%
   ggplot(aes(x = budget, y = gross, color = winner, label = Title), alpha = 0.1) +
   geom_abline(intercept = 0, slope = 1) +
   geom_point() +
-  my_theme
+  my_theme  # budget vs gross
 
 ggplotly(p)
+
+p2 <- osc_bud %>% select(Title, genres, gross, budget, winner) %>% 
+  filter(!is.na(winner)) %>% 
+  ggplot(aes(x = budget, y = gross, color = winner, label = Title), alpha = 0.1) +
+  geom_abline(intercept = 0, slope = 1) +
+  geom_point() +
+  my_theme # non-nominated removed
+
+ggplotly(p2)
+
+p3 <- osc_bud %>% select(Title, genres, gross, budget,with_inflation, gross_inflation, winner) %>% 
+  filter(!is.na(winner)) %>% 
+  ggplot(aes(x = with_inflation, y = gross_inflation, color = winner, label = Title), alpha = 0.1) +
+  geom_abline(intercept = 0, slope = 1) +
+  geom_point() +
+  my_theme
+
+ggplotly(p3) # with inflation
+
 ```
 
 <span style = "color:navy;, font-family:Arial, Helvetica, sans-serif;">The scatter plot above plots budget vs gross. Oscar winners are in blue, Oscar losers in red and non-nominated in grey. These colors will mean the same thing throughout this report.</span>
@@ -247,7 +267,8 @@ high_prof <- osc_bud %>%
   select(Title, budget, gross, pct_prof) %>% 
   arrange(desc(pct_prof))
 
-flextable(head(high_prof, 50))
+flextable(head(high_prof, 25))
+
 
 ```
 
@@ -259,9 +280,10 @@ flextable(head(high_prof, 50))
 
 low_prof <- high_prof %>% 
   na.omit(budget) %>% 
-  arrange(pct_prof)
+  arrange(pct_prof) %>% 
+  distinct(Title, .keep_all = T)
 
-flextable(head(low_prof, 50))
+flextable(head(low_prof, 25))
 
 ```
 

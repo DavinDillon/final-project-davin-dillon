@@ -63,10 +63,10 @@ oscars <- oscars %>%    # rename year for join
 
 meta$year <-  format(as.Date(meta$release_date, format = "%m/%d/%Y"), "%Y")
 
-blue = '#000080'
+blue = '#000080' # just the color code I wanted to use for my print
   
 meta <- meta %>% 
-  mutate(year = as.numeric(year))
+  mutate(year = as.numeric(year)) # easier use for comparisons/inflation
 
 # renames
 budget <- budget %>% 
@@ -93,7 +93,8 @@ full_budget <- full_join(meta, budget, on = 'Title')
 
 full_bud <- full_budget %>% 
   mutate(budget = pmax(new_budget, meta_budget, na.rm = T)) %>% 
-  select(Title,genres, budget,new_budget, meta_budget, popularity,year,
+  select(Title,genres, budget,new_budget,
+         meta_budget, popularity,year,
          release_date, revenue, runtime, vote_average,
          vote_count,gross)
 # set budget to max of two different budgets.
@@ -105,12 +106,11 @@ full_bud <- full_bud[-c(1,2,3),] %>%
 # remove first three unnecessary rows
 
 
-# format(date, format="%Y")
-
-
-full_bud <- full_bud %>% 
+full_bud <- full_bud %>%  # replace 1900 sentinels with 2022
   mutate(year = replace(year, year == 1900, 2022))
-
+# Most of these seemed to be less known movies
+# so I thought that 2022 would do the least harm 
+# with the inflation numbers
 
 adj_bud <- full_join(full_bud, adj,
                              on = c('Title', 'year')) %>% 
@@ -120,32 +120,18 @@ adj_bud <- full_join(full_bud, adj,
   select(Title,genres,vote_average, vote_count, budget,
          with_inflation, gross_inflation, year, gross,
          release_date) %>% 
-  arrange(desc(with_inflation))  
+  arrange(desc(with_inflation))  # joining movies with inflation
+# creating with_inflation(budget) and gross_inflation columns
+# arranging by highest with_inflation budgets
 
 
 osc_bud <-  full_join(adj_bud, oscars, on  = c('Title'))
+# joining all other data to Oscars data
+# This is the starting point for most of my data manipulation
+# 62706 entries, 15 total columns, of which 8 columns used.
 
 
 ```
-
-
-
-
-```{r, include = F}
-knitr::opts_chunk$set(echo = F)
-noms <- osc_bud %>% 
-  distinct(Title)
-
-
-osc_pop <-  osc_bud %>% 
-  mutate(vote_count = replace(vote_count, vote_count < 10000, NA)) %>%           filter(vote_count != 0) %>% 
-  filter(!is.na(vote_count))
-# filtered out movies that had less than 10000 votes  
-# for popular  movie set 
-
-total_votes <- sum(full_bud$vote_count, na.rm = T)
-```
-
 
 
 
@@ -153,15 +139,7 @@ total_votes <- sum(full_bud$vote_count, na.rm = T)
 
 <span style = "color:navy;, font-family:Arial, Helvetica, sans-serif;"><h2>Some Dataset Numbers</h2></span>
 
-```{r, include = T}
-# glimpse(oscar_titles)
-# glimpse(oscar_wn_titles)
-# glimpse(bst_act %>% distinct(Title))
-# glimpse(bst_pic)
-# glimpse(bst_pic_won)
-# glimpse(noms) 
 
-```
 
 
 ```{r, include = F}
@@ -173,12 +151,11 @@ oscar_wn_titles <- oscars %>% # count number of oscar winning movies
   filter(winner == T) %>% 
   distinct(Title)
 
-total_noms <- osc_bud %>% 
+total_noms <- osc_bud %>% # count total number of nominations
   filter(!is.na(winner))
 
 
-
-total_wins <- osc_bud %>% 
+total_wins <- osc_bud %>% # count total number of awards won
   filter(winner == T)
 
 
@@ -190,13 +167,14 @@ bst_pic <-  osc_bud %>%
          gross_inflation, gross, genres, vote_count,
          vote_average, category, winner) %>% 
   distinct(Title, .keep_all = T)
+# select best picture nominees in its many forms
 
 
-bst_pic_won <- bst_pic %>% 
+bst_pic_won <- bst_pic %>%  # count best picture winners
   filter(winner == T) %>% 
   distinct(Title, .keep_all = T)
 
-bst_act <- osc_bud %>% 
+bst_act <- osc_bud %>%  # count best actor/actress titles
   group_by(Title) %>% 
   filter(str_detect(category, 'ACT')) %>% 
   select(Title, genres, budget, category, winner)
@@ -204,7 +182,7 @@ bst_act <- osc_bud %>%
 bst_act_wn <- bst_act %>% 
   filter(!is.na(winner)) %>% 
   filter(winner == T) %>% 
-  distinct(Title, .keep_all = T)
+  distinct(Title, .keep_all = T) # count winners of actor/actress
 
 ```
 
@@ -219,20 +197,45 @@ bst_act_wn <- bst_act %>%
 
 ```{r, include = T}
 
-osc_bud <- osc_bud[!is.na(osc_bud$budget), ]
+osc_bud <- osc_bud[!is.na(osc_bud$budget), ] # remove na budgets
+
+
 osc_bud <- osc_bud %>% 
-  mutate(budget = as.numeric(budget))
-p <- osc_bud %>% select(Title, genres, gross, budget, winner) %>% 
-  ggplot(aes(x = budget, y = gross, color = winner, label = Title), alpha = 0.1) +
-  geom_abline(intercept = 0, slope = 1) +
-  geom_point() +
-  theme(axis.text.x = element_text(angle = -90,
+  mutate(budget = as.numeric(budget)) # make budget numeric 
+
+my_theme = theme(axis.text.x = element_text(angle = -90,
                                    size = 5, color = blue ),
         axis.text.y = element_text(color = blue)) +
   theme(axis.title.x = element_text(color = blue),
         axis.title.y = element_text(color = blue))
 
+p <- osc_bud %>% select(Title, genres, gross, budget, winner) %>% 
+  ggplot(aes(x = budget, y = gross, color = winner, label = Title), alpha = 0.1) +
+  geom_abline(intercept = 0, slope = 1) +
+  geom_point() +
+  my_theme  # budget vs gross
+
 ggplotly(p)
+
+p2 <- osc_bud %>% select(Title, genres, gross, budget, winner) %>% 
+  filter(!is.na(winner)) %>% 
+  ggplot(aes(x = budget, y = gross, color = winner, label = Title), alpha = 0.1) +
+  geom_abline(intercept = 0, slope = 1) +
+  geom_point() +
+  my_theme # non-nominated removed
+
+ggplotly(p2)
+
+p3 <- osc_bud %>% select(Title, genres, gross, budget,with_inflation, gross_inflation, winner) %>% 
+  filter(!is.na(winner)) %>% 
+  ggplot(aes(x = with_inflation, y = gross_inflation, color = winner, label = Title), alpha = 0.1) +
+  geom_abline(intercept = 0, slope = 1) +
+  geom_point() +
+  my_theme
+
+ggplotly(p3) # with inflation
+
+
 ```
 
 
@@ -279,23 +282,33 @@ flextable(head(low_prof, 50))
 osc_bud <- osc_bud %>%
   mutate(budget = as.numeric(budget)) %>%
   mutate(gross = as.numeric(gross))
+# may be at least in part redundant but to be sure numeric
+
+avg_prof <- osc_bud %>% 
+  filter(!is.na(budget)) %>% 
+  filter(!is.na(gross)) %>% 
+  mutate(avg_profit = (100*sum(gross))/(sum(budget))) %>% 
+  mutate(percent = 100 * (gross/budget))
+  
+avg_profit <- head(avg_prof$avg_profit, 1)
+
 
 win_prof <- osc_bud %>%
-  filter(winner == T) %>%
+  filter(winner == T) %>%  # calculate percent profit Oscar winners
   filter(!is.na(budget)) %>%
   filter(!is.na(gross)) %>%
   mutate(winner_profit = (100*sum(gross))/(sum((budget)))) %>% 
   mutate(percent = 100 * (gross/budget))
 
 lsr_prof <- osc_bud %>%
-  filter(winner == F) %>%
+  filter(winner == F) %>% # calculate percent profit Oscar losers
   filter(!is.na(budget)) %>%
   filter(!is.na(gross)) %>%
   mutate(loser_profit = 100*sum(gross/sum(budget))) %>% 
   mutate(percent = 100 *(gross/budget))
 
 no_nom_prof <- osc_bud %>%
-  filter(is.na(winner)) %>%
+  filter(is.na(winner)) %>% # calculate percent profit non-nominated
   filter(!is.na(budget)) %>%
   filter(!is.na(gross)) %>%
   mutate(nonnom_profit = (100*sum(gross))/(sum(budget))) %>% 
@@ -307,14 +320,10 @@ money_plot <- osc_bud %>% select(Title, genres, gross,
                                  gross_inflation, winner) %>%
   ggplot() +
   geom_density(aes((budget), fill = winner), alpha = 0.4)   +
-  theme(axis.text.x= element_text(angle=-90)) +
+  my_theme +
   xlim(0, 60000000) +
-  ylim(0, 0.00000035) +
-  theme(axis.text.x = element_text(angle = -90,
-                                   size = 5, color = blue ),
-        axis.text.y = element_text(color = blue)) +
-  theme(axis.title.x = element_text(color = blue),
-        axis.title.y = element_text(color = blue))
+  ylim(0, 0.00000035)  # budget density plot 
+
 
 ggplotly(money_plot)
 
@@ -325,18 +334,14 @@ money_plot2 <- osc_bud %>% select(Title, genres,
                                   gross_inflation) %>%
   ggplot() +
   geom_density(aes(with_inflation, fill = winner), alpha = 0.4)+
-  theme(axis.text.x=element_text(angle=-90)) +
   xlim(0, 60000000) +
   ylim(0, 0.00000035) +
-  theme(axis.text.x = element_text(angle = -90,
-                                   size = 5, color = blue ),
-        axis.text.y = element_text(color = blue)) +
-  theme(axis.title.x = element_text(color = blue),
-        axis.title.y = element_text(color = blue))
+  my_theme # budget with inflation density plot
 
 ggplotly(money_plot2)
 
-grid.arrange(money_plot, money_plot2, ncol=2)
+grid.arrange(money_plot, money_plot2, ncol=2) 
+# side by side budget plots
 
 ```
 
@@ -358,11 +363,7 @@ prof_plot <- osc_bud %>% select(Title, genres, gross,
   geom_density(aes((gross), fill = winner), alpha = 0.4)   + 
   xlim(0, 200000000) + 
   ylim(0, 0.000000070) +
-  theme(axis.text.x = element_text(angle = -90,
-                                   size = 5, color = blue ),
-        axis.text.y = element_text(color = blue)) +
-  theme(axis.title.x = element_text(color = blue),
-        axis.title.y = element_text(color = blue))
+  my_theme # plot gross revenue
 
 ggplotly(prof_plot)
 
@@ -372,16 +373,13 @@ prof_plot2 <- osc_bud %>% select(Title, genres, gross,
   ggplot() +
   geom_density(aes(gross_inflation, fill = winner), alpha = 0.4)   +     xlim(0, 200000000) +
   ylim(0, 0.000000070) +
-  theme(axis.text.x = element_text(angle = -90,
-                                   size = 5, color = blue ),
-        axis.text.y = element_text(color = blue)) +
-  theme(axis.title.x = element_text(color = blue),
-        axis.title.y = element_text(color = blue))
+  my_theme
 
 
-ggplotly(prof_plot2)
+ggplotly(prof_plot2) # plot gross inflation
 
-grid.arrange(prof_plot, prof_plot2, ncol=2)
+grid.arrange(prof_plot, prof_plot2, ncol=2) 
+# side by side gross plots
 
 
 ```
@@ -398,9 +396,10 @@ grid.arrange(prof_plot, prof_plot2, ncol=2)
 
 ```{r, warning = F}
 
-grid.arrange(money_plot, prof_plot, ncol=2)
+grid.arrange(money_plot, prof_plot, ncol=2) # spent vs made charts
 
 grid.arrange(money_plot2, prof_plot2, ncol=2)
+# same chart with inflation
 
 
 ```
@@ -414,39 +413,38 @@ grid.arrange(money_plot2, prof_plot2, ncol=2)
 
 ```{r}
 
+
 bst_pic_budgets <- bst_pic_won %>% 
   filter(budget > 0) %>% 
   mutate(year_title = paste(year, ', ', Title))
+# eliminate the few best (less than 10 I think) pics with 0 or na budget
 
 r <- bst_pic_budgets %>%  
   ggplot() +
   geom_col(aes(x = year_title, y = with_inflation), fill= blue) +
-  theme(axis.text.x = element_text(angle = -90,
-                                   size = 5, color = blue ),
-        axis.text.y = element_text(color = blue)) +
-  theme(axis.title.x = element_text(color = blue),
-        axis.title.y = element_text(color = blue))
+  my_theme  # best picture column plot
 
-ggplotly(r)
+ggplotly(r) 
 
 min_bud <- bst_pic_won %>% 
   filter(with_inflation > 0) %>% 
   filter(with_inflation == min(with_inflation)) %>% 
   select(Title, with_inflation) %>% 
-  arrange(with_inflation)
+  arrange(with_inflation) # determine minimum of best pic budgets
 
-min_bud_title <- head(min_bud$Title, 1)
-min_bud_cost <- head(min_bud$with_inflation, 1)
+min_bud_title <- head(min_bud$Title, 1) # title of min cost best pic
+min_bud_cost <- head(min_bud$with_inflation, 1) # min cost best pic
 
-avg_bst <- mean(min_bud$with_inflation)
+avg_bst <- mean(min_bud$with_inflation) # average cost of best pic
 
 max_bud <- bst_pic_won %>% 
   filter(with_inflation == max(with_inflation)) %>% 
   select(Title, with_inflation) %>% 
-  arrange(desc(with_inflation))
+  arrange(desc(with_inflation)) # determine most expensive best pic
 
-max_bud_title <- head(max_bud$Title, 1)
-max_bud_cost <- head(max_bud$with_inflation, 1)
+max_bud_title <- head(max_bud$Title, 1) # Title of most expensive
+max_bud_cost <- head(max_bud$with_inflation, 1) # budget of most expensive
+
 
 
 ```
