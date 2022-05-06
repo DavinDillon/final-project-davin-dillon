@@ -13,9 +13,9 @@ knitr::opts_chunk$set(echo = T, include = T, message = F, warning = F)
 ```
 
 <span style = "color:navy;, font-family:Arial, Helvetica, sans-serif;"><center><h1>Introduction</h1></center>
-The Academy Awards, also known as the Oscars, is arguably the ultimate award for any movie. I plan to use the data I have collected to investigate the relationship between Oscars and money. Do Oscar winning movies cost more to make than movies that lose Oscars? Do both of these sets of movies cost more than movies that are not nominated? Do Oscar winners, Oscar loser, or non-nominated movies make more gross revenue? Which of these has the highest percentage profit? I will use the data to answer these questions and more. Along the way, I will also try to highlight some interesting statistics and facts. By analyzing this data, I hope to shed some light on whether production companies pay for Oscars, profit by making Oscars, both, or neither. 
+The Academy Awards, also known as the Oscars, is arguably the ultimate award for any movie. I plan to use the data I have collected to investigate the relationship between Oscars and money. Do Oscar winning movies cost more to make than movies that lose Oscars? Do both sets of movies cost more than movies that are not nominated? Do Oscar winners, Oscar losers, or non-nominated movies make more gross revenue? Which has the highest percentage profit? I will use the data to answer these questions and more. Along the way, I will also try to highlight some interesting statistics and facts. By analyzing this data, I hope to shed some light on whether production companies pay for Oscars, profit by making Oscars, both, or neither. 
 
-Also, by choosing a fun topic I hope that people looking find answers that they enjoy thinking about. It is certainly true that I had fun looking for my own answers.
+Also, by choosing a fun topic, I hope that people looking find answers that they enjoy thinking about. It is certainly true that I had fun looking for my own answers.
 </span>
 
 ---
@@ -32,13 +32,12 @@ library(readr) # for reading files
 library(ggplot2) # for plotting
 library(plotly) # for interactive plotting
 library(dplyr) # data manipulation
-library(flextable) # pretty tables
 library(formattable) # comma function formatting numbers
 library(gridExtra) # side by side plots
 library(kableExtra) # for scrolling table
 ```
 
-<span style = "color:navy;, font-family:Arial, Helvetica, sans-serif;">Here I read in the four data sets I wound up using. I give a brief explanation of each below.</span>
+<span style = "color:navy;, font-family:Arial, Helvetica, sans-serif;">In this code, I imported the four data sets I wound up using. I give a brief explanation of each below.</span>
 
 ```{r}
 
@@ -54,9 +53,9 @@ inflation <- read_csv('inflation_data.csv')
 
 <span style = "color:navy;, font-family:Arial, Helvetica, sans-serif;"><h2><center>Paying for Oscars or Oscars for Pay?</center></h2><ul><li>The largest part of my data comes from a data set I got from github. [<a style = 'color:green;'>yash91sharma github</a>](https://raw.githubusercontent.com/yash91sharma/IMDB-Movie-Dataset-Analysis/master/movie_metadata.csv) created the data for a project similar to mine in which they asked which countries made the most movies.This data set contains `r comma(nrow(meta), digits = 0)` rows of data and seems to have been made around 2017.</li>
 
-<li>I used [<a style = 'color:green;'>alexsychu kaggle</a>](https://www.kaggle.com/code/alexsychu/movie-industry-eda-alex-chu-5-april-2022/data) to gather some more data up to 2020. This second dat set had an additional `r comma(nrow(budget), digits = 0)` rows of data. This user was trying to answer the question of how to predict if a movie will do well.
+<li>I used [<a style = 'color:green;'>alexsychu kaggle</a>](https://www.kaggle.com/code/alexsychu/movie-industry-eda-alex-chu-5-april-2022/data) to gather some more data up to 2020. This second data set had an additional `r comma(nrow(budget), digits = 0)` rows of data. This user was trying to answer the question of how to predict if a movie will do well.
 
-</li><li>Lastly for movie data, I used data from [<a style = 'color:green;'>unanimad kaggle</a>](https://www.kaggle.com/datasets/unanimad/the-oscar-award) . This data set had `r comma(nrow(oscars),digits = 0)` rows of data and this kaggle user asked various questions about who won Oscars.
+</li><li>Lastly for movie data, I used data from [<a style = 'color:green;'>unanimad kaggle</a>](https://www.kaggle.com/datasets/unanimad/the-oscar-award). This data set had `r comma(nrow(oscars),digits = 0)` rows of data and this kaggle user asked various questions about who won Oscars.
 
 </li><li>My last and only 'non-movie' data set comes from [<a style = 'color:green;'>officialdata.org</a>](https://www.officialdata.org/us/inflation/1800?amount=1#:~:text=Value%20of%20%241%20from%201800%20to%202022&text=The%20dollar%20had%20an%20average,Labor%20Statistics%20consumer%20price%20index.) , where I obtained 223 rows of inflation data which allowed me to calculate budgets and gross revenue with inflation as a factor.</li></ul></span>
 
@@ -64,7 +63,7 @@ inflation <- read_csv('inflation_data.csv')
 ---
 
 <span style = "color:navy;, font-family:Arial, Helvetica, sans-serif;"><h2><center>Data Wrangling</center></h2>
-There were many renames and some work to choose a movie budget in some cases. Once I had the columns I wanted, I set in on joining the data together. First, I joined the meta data with the budget data to include all of the titles for which I had information. My next adventure (or misadventure) was to join this data with the inflation data. Once that was done, all that was left was joining this information with the Oscar data. All in all, I used three full joins. </span>
+There were many column renames and some work to choose a movie budget in cases where the data sets disagreed. Once I had the columns I wanted, I set in on joining the data together. First, I joined the meta data with the budget data to include all of the titles for which I had information. My next adventure (or misadventure) was to join this data with the inflation data. Once that was done, all that was left was joining this information with the Oscar data. All in all, I used three full joins. </span>
 
 
 
@@ -200,14 +199,14 @@ bst_act_wn <- bst_act %>%
 ```
 
 
-[The code above is used to find the numbers contained here. The data I was able to collect contains `r comma(nrow(oscar_titles), digits = 0)` movies nominated for an Academy Award since its inception in 1929. Of these `r comma(nrow(oscar_titles),digits = 0)` movies. `r comma(nrow(oscar_wn_titles), digits = 0)` won at least one award. There have been `r comma(nrow(total_noms), digits = 0)` total Oscar nominations, and `r comma(nrow(total_wins), digits = 0)` total Oscar wins in the dataset. `r comma(nrow(bst_pic), digits = 0)` movies have been nominated for Best Picture in its many forms. Out of these, `r comma(nrow(bst_pic_won), digits = 0)` won. `r comma(nrow(bst_act %>% distinct(Title)), digits = 0)` movies have had an actor or actress nominated in either a leading or supporting role.  `r comma(nrow(bst_act_wn), digits = 0)` movies had at least one winner in an acting category. ]{style="color:navy;, font-family:Arial, Helvetica, sans-serif;"}
+[The code above is used to find the numbers contained here. The data I was able to collect contains `r comma(nrow(oscar_titles), digits = 0)` movies nominated for an Academy Award since its inception in 1929. Of these `r comma(nrow(oscar_titles),digits = 0)` movies, `r comma(nrow(oscar_wn_titles), digits = 0)` won at least one award. There have been `r comma(nrow(total_noms), digits = 0)` total Oscar nominations, and `r comma(nrow(total_wins), digits = 0)` total Oscar wins in the dataset. `r comma(nrow(bst_pic), digits = 0)` movies have been nominated for Best Picture in its many forms. Out of these, `r comma(nrow(bst_pic_won), digits = 0)` won. `r comma(nrow(bst_act %>% distinct(Title)), digits = 0)` movies have had an actor or actress nominated in either a leading or supporting role.  `r comma(nrow(bst_act_wn), digits = 0)` movies had at least one winner in an acting category. ]{style="color:navy;, font-family:Arial, Helvetica, sans-serif;"}
 
 
 ---
 
 
 <span style = "color:navy;, font-family:Arial, Helvetica, sans-serif;"><h2><center>Plotting Profit</center></h2>
-The first graph is a scatter plot of budget vs gross. Because there were so many, I also wanted to make the scatter plot with non-nominated movies removed. The last plot shows the same information with inflation. The black lines are the break even line.</span>
+The first graph is a scatter plot of budget versus gross. Because there were so many, I also wanted to make the scatter plot with non-nominated movies removed. The last plot shows the same information with inflation. The black lines are the break even line.</span>
 
 ```{r}
 
@@ -251,7 +250,7 @@ ggplotly(p3) # with inflation
 
 ```
 
-<span style = "color:navy;, font-family:Arial, Helvetica, sans-serif;">The scatter plot above plots budget vs gross. Oscar winners are in blue, Oscar losers in red and non-nominated in grey. These colors will mean the same thing throughout this report.</span>
+<span style = "color:navy;, font-family:Arial, Helvetica, sans-serif;">The scatter plot above plots budget versus gross. Oscar winners are in blue, Oscar losers in red and non-nominated in grey. These colors will mean the same thing throughout this report.</span>
 
 
 
@@ -387,7 +386,7 @@ grid.arrange(money_plot, money_plot2, ncol=2)
 
 
 
-<span style = "color:navy; font-family:Arial, Helvetica, sans-serif;"><ul><li>The average Oscar winner budget was $`r comma(mean(win_prof$with_inflation), digits = 2)`.</li><li>The median Oscar winner budget was $`r comma(median(win_prof$with_inflation), digits = 2)`</li><li>The average Oscar loser budget was $`r comma(mean(lsr_prof$with_inflation), digits = 2)`</li><li>The median Oscar loser budget was $`r comma(median(lsr_prof$with_inflation), digits = 2)`</li><li>The average non-nominated budget was $`r comma(mean(no_nom_prof$with_inflation, digits = 2))`.</li><li>The median non-nominated budget was `r comma(median(no_nom_prof$with_inflation), digits = 2)`</li></ul></span>
+<span style = "color:navy; font-family:Arial, Helvetica, sans-serif;"><ul><li>The average Oscar winner budget was $`r comma(mean(win_prof$with_inflation), digits = 2)`.</li><li>The median Oscar winner budget was $`r comma(median(win_prof$with_inflation), digits = 2)`</li><li>The average Oscar loser budget was $`r comma(mean(lsr_prof$with_inflation), digits = 2)`</li><li>The median Oscar loser budget was $`r comma(median(lsr_prof$with_inflation), digits = 2)`</li><li>The average non-nominated budget was $`r comma(mean(no_nom_prof$with_inflation, digits = 2))`.</li><li>The median non-nominated budget was $`r comma(median(no_nom_prof$with_inflation), digits = 2)`</li></ul></span>
 
 
 ---
@@ -424,7 +423,7 @@ grid.arrange(prof_plot, prof_plot2, ncol=2)
 
 ```
 
-<span style = "color:navy; font-family:Arial, Helvetica, sans-serif;"><ul><li>The average Oscar winner percent profit was `r comma(win_prof$winner_profit[1], digits = 2)`.</li><li>The median percent profit for Oscar winners was `r comma(median(win_prof$percent),digits = 2)`</li><li>The average Oscar loser percent profit was `r comma(lsr_prof$loser_profit[1], digits = 2)`. </li><li>The median percent profit for Oscar losers was `r comma(median(lsr_prof$percent), digits = 2)`. </li><li>The average non-nominated percent profit was `r comma(no_nom_prof$nonnom_profit[1], digits = 2)`.</li><li>The median percent profit for non-nominated movies was `r comma(median(no_nom_prof$percent),digits = 2)`</li></ul></span>
+<span style = "color:navy; font-family:Arial, Helvetica, sans-serif;"><ul><li>The average Oscar winner percent profit was `r comma(win_prof$winner_profit[1], digits = 2)`%.</li><li>The median percent profit for Oscar winners was `r comma(median(win_prof$percent),digits = 2)`%.</li><li>The average Oscar loser percent profit was `r comma(lsr_prof$loser_profit[1], digits = 2)`%. </li><li>The median percent profit for Oscar losers was `r comma(median(lsr_prof$percent), digits = 2)`%. </li><li>The average non-nominated percent profit was `r comma(no_nom_prof$nonnom_profit[1], digits = 2)`%.</li><li>The median percent profit for non-nominated movies was `r comma(median(no_nom_prof$percent),digits = 2)`%.</li></ul></span>
 
 
 ---
@@ -496,7 +495,7 @@ The minimum budget for a Best Picture winner with inflation was `r min_bud_title
 
 
 <span style = "color:navy; font-family:Arial, Helvetica, sans-serif;"><center><h2>Summary</h2></center>
-I wanted to look at the relationship between the Oscars and money. Looking at the data, it seems clear that Oscar winning movies both tend to cost more to make and have more profits than Oscar losing movies. Following that trend, Oscar losing movies tent to cost more and have more profits than movies that aren't nominated at all. These results were not surprising, as I would hope that award winning movies would tend to be "better" than movies that win no awards. Still, it hard to say which comes first. Maybe with further investigation into how the money for these movies was spent, might shed more light on an answer. Lastly, it is clear from the Best Picture column chart that a high budget is not a requirement for being an Oscar winner. Lastly I'd just like to add that the movie business seems to be very lucrative. The average percent profit for these movies was `r comma(avg_profit, digits = 2)`. In essence, this means that a $50,000,000 movie will gross on average `r comma(avg_profit * (50000000/100))`.</span>
+I wanted to look at the relationship between the Oscars and money. Looking at the data, it seems clear that Oscar winning movies both tend to cost more to make and have more profits than Oscar losing movies. Following that trend, Oscar losing movies tent to cost more and have more profits than movies that aren't nominated at all. These results were not surprising, as I would hope that award winning movies would tend to be "better" than movies that win no awards. Still, it is hard to say which comes first. Maybe further investigation into how the money for these movies was spent might shed more light on an answer. Lastly, it is clear from the Best Picture column chart that a high budget is not a requirement for being an Oscar winner. Lastly I'd just like to add that the movie business seems to be very lucrative. The average percent profit for these movies was `r comma(avg_profit, digits = 2)`. In essence, this means that a $50,000,000 movie will gross on average $`r comma(avg_profit * (50000000/100))`.</span>
 
 
 
